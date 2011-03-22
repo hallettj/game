@@ -19,10 +19,10 @@ function makeRock() {
 }
 
 function makeFood() {
-    var food = Crafty.e('2D, canvas, color, collision')
+    var food = Crafty.e('2D, canvas, color, collision, Edible')
         .attr({
-            x: Crafty.viewport.width * (3 / 4),
-            y: Crafty.viewport.height * (3 / 4),
+            x: Crafty.randRange(10, Crafty.viewport.width - 10),
+            y: Crafty.randRange(10, Crafty.viewport.height -10),
             w: 5, h: 5
         })
         .color('#f00');
@@ -96,6 +96,18 @@ Crafty.scene('main', function() {
         init: function() {
             this.onhit('guy', function() {
                 Crafty.scene('gameover');
+            });
+        }
+    });
+    
+    Crafty.c('Edible', {
+        init: function() {
+            this.onhit('guy', function() {
+                this.destroy();
+                makeFood();
+            }).onhit('Deadly', function() {
+                this.destroy();
+                makeFood();
             });
         }
     });
