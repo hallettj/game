@@ -1,14 +1,10 @@
-var REPULSION = function(x) { return x; }
-var ATTRACTION = function(x) { return x; }
-var SPEED_LIMIT = 0.4;
-
 //setup the Crafty game with an FPS of 50 and stage width
 //and height
 Crafty.init(50, 580, 225);
 Crafty.canvas();
 
 function makeGuy() {
-    var guy = Crafty.e('2D, canvas, color, guy, collision, SpaceFlight, Losable')
+    var guy = Crafty.e('2D, canvas, color, guy, collision, controls, SpaceFlight, Losable')
         .attr({ x: Crafty.viewport.width / 2, y: Crafty.viewport.height / 2, w: 10, h: 10 })
         .color('#fff')
         .SpaceFlight(0.01);
@@ -31,27 +27,6 @@ function makeFood() {
         })
         .color('#f00');
     return food;
-}
-
-function dist(a, b) {
-    var x = Math.abs(a.x - b.x);
-    var y = Math.abs(a.x - b.x);
-    return Math.sqrt(x * x + y * y);
-}
-
-function vector(origin, target) {
-    return {
-        x: target.x - origin.x,
-        y: target.y - origin.y
-    };
-}
-
-function toward(origin, velocity, target) {
-    var targV = vector(origin, target);
-    return {
-        x: targV.x - velocity.x,
-        y: targV.y - velocity.y
-    };
 }
 
 Crafty.scene("loading", function() {
@@ -87,26 +62,20 @@ Crafty.scene('main', function() {
                 if (c.down) { this._vector.y += this._accel; }
                 if (c.left) { this._vector.x -= this._accel; }
                 if (c.right) { this._vector.x += this._accel; }
+            }).bind('keydown', function(e) {
+                if (e.keyCode == Crafty.keys.UA) { this._controls.up = true; }
+                if (e.keyCode == Crafty.keys.DA) { this._controls.down = true; }
+                if (e.keyCode == Crafty.keys.LA) { this._controls.left = true; }
+                if (e.keyCode == Crafty.keys.RA) { this._controls.right = true; }
                 
-                var food = goals[0];
-                var to;
-                if (food) {
-                    console.log(food);
-                    to = toward(this, this._vector, { x: food._x, y: food._y });
-                    this._controls.up = to.y < 0;
-                    this._controls.down = to.y > 0;
-                    this._controls.left = to.x < 0;
-                    this._controls.right = to.x > 0;
-                }
+                this.preventTypeaheadFind(e);
+            }).bind('keyup', function(e) {
+                if (e.keyCode == Crafty.keys.UA) { this._controls.up = false; }
+                if (e.keyCode == Crafty.keys.DA) { this._controls.down = false; }
+                if (e.keyCode == Crafty.keys.LA) { this._controls.left = false; }
+                if (e.keyCode == Crafty.keys.RA) { this._controls.right = false; }
                 
-                if (dist({ x: 0, y: 0 }, this._vector) > SPEED_LIMIT) {
-                    this.controls = {
-                        up: this._vector.y < 0,
-                        down: this._vector.y > 0,
-                        left: this._vector.x < 0,
-                        right: this._vector.x > 0
-                    };
-                }
+                this.preventTypeaheadFind(e);
             });
             
             return this;
@@ -125,8 +94,6 @@ Crafty.scene('main', function() {
     
     Crafty.c('Deadly', {
         init: function() {
-            hazards.push(this);
-            
             this.onhit('guy', function() {
                 Crafty.scene('gameover');
             });
@@ -135,25 +102,17 @@ Crafty.scene('main', function() {
     
     Crafty.c('Edible', {
         init: function() {
-            goals.push(this);
-            
             this.onhit('guy', function() {
-                this._gobble();
+                this.destroy();
+                makeFood();
             }).onhit('Deadly', function() {
-                this._gobble();
+                this.destroy();
+                makeFood();
             });
-        },
-        _gobble: function() {
-            this.destroy();
-            goals = [];
-            makeFood();
         }
     });
     
-    var hazards = [];
-    var goals = [];
-    
-    var guys = [makeGuy()];
+    makeGuy();
     makeRock();
     makeFood();
 });
