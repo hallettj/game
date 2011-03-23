@@ -1,12 +1,13 @@
+/*globals Crafty */
+
 //setup the Crafty game with an FPS of 50 and stage width
 //and height
 Crafty.init(50, 580, 225);
 Crafty.canvas();
 
 function makeGuy() {
-    var guy = Crafty.e('2D, canvas, color, guy, collision, controls, SpaceFlight, Losable')
-        .attr({ x: Crafty.viewport.width / 2, y: Crafty.viewport.height / 2, w: 10, h: 10 })
-        .color('#fff')
+    var guy = Crafty.e('2D, canvas, guy, ship, collision, controls, SpaceFlight, Losable')
+        .attr({ x: Crafty.viewport.width / 2, y: Crafty.viewport.height / 2, w: 25, h: 25 })
         .SpaceFlight(0.01);
     return guy;
 }
@@ -29,13 +30,19 @@ function makeFood() {
     return food;
 }
 
+Crafty.sprite(25, 'ship.gif', {
+    ship: [0,0]
+});
+
 Crafty.scene("loading", function() {
+    Crafty.load(['ship.gif'], function() {
+        Crafty.scene('main');
+    });
+
     Crafty.background('#000');
     Crafty.e('2D, DOM, text').attr({w: 100, h: 20, x: 150, y: 120})
         .text('Loading...')
         .css({ 'text-align': 'center' });
-
-    Crafty.scene('main');
 });
 
 Crafty.scene('gameover', function() {
