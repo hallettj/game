@@ -2,7 +2,7 @@
 
 //setup the Crafty game with an FPS of 50 and stage width
 //and height
-Crafty.init(50, 580, 225);
+Crafty.init(50, 1000, 800);
 Crafty.canvas();
 
 Crafty.c('SpaceFlight', {
