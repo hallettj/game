@@ -95,6 +95,44 @@ Crafty.c('Edible', {
     }
 });
 
+Crafty.c('massive', {
+    mass: function(mass) {
+        var rock = this;
+
+        function distance(other) {
+            var x = rock.x - other.x,
+                y = rock.y - other.y;
+            return Math.sqrt(x * x + y * y);
+        }
+
+        function vecMult(scalar, vec) {
+            return {
+                x: vec.x * scalar,
+                y: vec.y * scalar
+            };
+        }
+
+        function unit(other) {
+            var dist = distance(other);
+            return {
+                x: (other.x - rock.x) / dist,
+                y: (other.y - rock.y) / dist
+            };
+        }
+
+        this.bind('enterframe', function() {
+            Crafty('SpaceFlight').each(function() {
+                var guy = this,
+                    dist = distance(guy),
+                    u = unit(guy),
+                    accel = vecMult(0 - mass / (dist * dist), u);
+
+                guy.accelerate(accel);
+            });
+        });
+    }
+});
+
 Crafty.sprite(25, 'ship.gif', {
     ship: [0,0]
 });
@@ -107,9 +145,10 @@ function makeGuy() {
 }
 
 function makeRock() {
-    var rock = Crafty.e('2D, canvas, color, rock, collision, Deadly')
+    var rock = Crafty.e('2D, canvas, color, rock, collision, Deadly, massive')
         .attr({ x: Crafty.viewport.width / 4, y: Crafty.viewport.height / 4, w: 50, h: 50 })
-        .color('#fff');
+        .color('#fff')
+        .mass(100);
     return rock;
 }
 
