@@ -92,6 +92,7 @@ Crafty.c('Edible', {
     },
     onEaten: function(callback) {
         this._promise.done(callback);
+        return this;
     }
 });
 
@@ -153,14 +154,18 @@ function makeRock() {
 }
 
 function makeFood() {
-    var food = Crafty.e('2D, canvas, color, collision, Edible')
+    var food = Crafty.e('2D, canvas, color, collision, Edible, SpaceFlight')
         .attr({
             x: Crafty.randRange(10, Crafty.viewport.width - 10),
             y: Crafty.randRange(10, Crafty.viewport.height -10),
             w: 5, h: 5
         })
         .color('#f00')
-        .onEaten(makeFood);
+        .onEaten(makeFood)
+        .accelerate({
+            x: 0.5 - (Math.random() * 1.0),
+            y: 0.5 - (Math.random() * 1.0)
+        });
     return food;
 }
 
