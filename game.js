@@ -6,22 +6,40 @@ Crafty.init(50, 580, 225);
 Crafty.canvas();
 
 Crafty.c('SpaceFlight', {
-    _vector: { x: 0, y: 0 },
-    _controls: { up: false, down: false, right: false, left: false },
+    init: function() {
+        this._vector = { x: 0, y: 0 };
+
+        this.bind('enterframe', function() {
+            this.x += this._vector.x;
+            this.y += this._vector.y;
+        });
+    },
+    accelerate: function(vec) {
+        this._vector.x += vec.x;
+        this._vector.y += vec.y;
+    }
+});
+
+Crafty.c('thrusters', {
     _accel: 0.01,
-    SpaceFlight: function(accel) {
+    thrusters: function(accel) {
+        if (!this.has('SpaceFlight')) {
+            this.addComponent('SpaceFlight');
+        }
+        if (!this.has('controls')) {
+            this.addComponent('controls');
+        }
+
         this._accel = accel || this._accel;
+        this._controls = { up: false, down: false, right: false, left: false };
 
         this.bind('enterframe', function() {
             var c = this._controls;
 
-            this.x += this._vector.x;
-            this.y += this._vector.y;
-
-            if (c.up) { this._vector.y -= this._accel; }
-            if (c.down) { this._vector.y += this._accel; }
-            if (c.left) { this._vector.x -= this._accel; }
-            if (c.right) { this._vector.x += this._accel; }
+            this.accelerate({
+                x: (c.left ? 0 - this._accel : 0) + (c.right ? this._accel : 0),
+                y: (c.up ? 0 - this._accel : 0) + (c.down ? this._accel : 0)
+            });
         }).bind('keydown', function(e) {
             if (e.keyCode == Crafty.keys.UA) { this._controls.up = true; }
             if (e.keyCode == Crafty.keys.DA) { this._controls.down = true; }
@@ -45,7 +63,7 @@ Crafty.c('SpaceFlight', {
 Crafty.c('Losable', {
     init: function() {
         this.bind('enterframe', function() {
-            if (this.x < 0 || this.x > Crafty.viewport.width || this.y < 0 || this.y > Crafty.viewport.height) {
+            if (this.x < 0 - this.w || this.x > Crafty.viewport.width || this.y < 0 - this.h || this.y > Crafty.viewport.height) {
                 Crafty.scene('gameover');
             }
         });
@@ -82,9 +100,9 @@ Crafty.sprite(25, 'ship.gif', {
 });
 
 function makeGuy() {
-    var guy = Crafty.e('2D, canvas, guy, ship, collision, controls, SpaceFlight, Losable')
+    var guy = Crafty.e('2D, canvas, guy, ship, collision, thrusters, Losable')
         .attr({ x: Crafty.viewport.width / 2, y: Crafty.viewport.height / 2, w: 25, h: 25 })
-        .SpaceFlight(0.01);
+        .thrusters(0.01);
     return guy;
 }
 
